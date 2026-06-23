@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engrenages PPCM</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .main-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .simulation-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #canvas-container {
+            position: relative;
+            background: #1a252f;
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
+            border: 2px solid #34495e;
+            cursor: grab;
+        }
+        #canvas-container:active { cursor: grabbing; }
+
+        /* Filtres et styles pour un rendu "métallique/steampunk" */
+        .gear-bronze { fill: url(#bronzeGradient); filter: drop-shadow(4px 4px 5px rgba(0,0,0,0.6)); }
+        .gear-copper { fill: url(#copperGradient); filter: drop-shadow(4px 4px 5px rgba(0,0,0,0.6)); }
+        .gear-center { fill: #111; stroke: #555; stroke-width: 3; }
+        
+        /* Les repères d'alignement */
+        .mark { fill: #e74c3c; filter: drop-shadow(0 0 3px red); }
+
+        #info-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            width: 660px; /* Ajusté pour la largeur du canvas */
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            color: #2c3e50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+
+        .stat-box { flex: 1; }
+        .stat-box h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #34495e; }
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #2980b9; }
+        .stat-label { font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+
+        #lcm-alert {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 1px;
+            width: 660px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #reset-btn {
+            padding: 15px 25px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        #reset-btn:hover { background-color: #c0392b; }
+        #reset-btn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="simulation-column">
+            <svg id="canvas-container" width="700" height="400" viewBox="0 0 700 400">
+                <defs>
+                    <radialGradient id="bronzeGradient" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                        <stop offset="0%" stop-color="#cd7f32" />
+                        <stop offset="70%" stop-color="#8b5a2b" />
+                        <stop offset="100%" stop-color="#3e2723" />
+                    </radialGradient>
+                    <radialGradient id="copperGradient" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                        <stop offset="0%" stop-color="#f4a460" />
+                        <stop offset="70%" stop-color="#b87333" />
+                        <stop offset="100%" stop-color="#5d4037" />
+                    </radialGradient>
+                </defs>
+
+                <g id="gear-a-group" transform="translate(220, 200) rotate(0)">
+                    <path id="gear-a-path" class="gear-bronze" d=""/>
+                    <circle class="gear-center" cx="0" cy="0" r="25"/>
+                    <circle cx="0" cy="0" r="15" fill="#3e2723"/>
+                    <rect class="mark" x="110" y="-4" width="28" height="8" rx="3"/>
+                </g>
+
+                <g id="gear-b-group" transform="translate(480, 200) rotate(0)">
+                    <path id="gear-b-path" class="gear-copper" d=""/>
+                    <circle class="gear-center" cx="0" cy="0" r="20"/>
+                    <circle cx="0" cy="0" r="12" fill="#5d4037"/>
+                    <rect class="mark" x="-115" y="-4" width="28" height="8" rx="3"/>
+                </g>
+            </svg>
+
+            <div id="info-panel">
+                <div class="stat-box">
+                    <h3>Roue A (24 dents)</h3>
+                    <div class="stat-value" id="tours-a">0.00</div>
+                    <div class="stat-label">tours complétés</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Dents défilées</h3>
+                    <div class="stat-value" id="dents-total">0</div>
+                    <div class="stat-label">depuis le départ</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Roue B (18 dents)</h3>
+                    <div class="stat-value" id="tours-b">0.00</div>
+                    <div class="stat-label">tours complétés</div>
+                </div>
+            </div>
+
+            <div id="lcm-alert">🎯 POSITION INITIALE ATTEINTE (PPCM = 72) !</div>
+        </div>
+
+        <button id="reset-btn">Remise à zéro</button>
+    </div>
+
+    <script>
+        const Z_A = 24;
+        const Z_B = 18;
+        const R_A = 6.19 * Z_A; 
+        const R_B = 6.19 * Z_B; 
+
+        const centerX_A = 220; const centerY_A = 200;
+        const centerX_B = 480; const centerY_B = 200;
+
+        function createGearPath(teeth, pitchRadius) {
+            let path = "";
+            const addendum = 12;
+            const dedendum = 15;
+            const angleStep = (2 * Math.PI) / teeth;
+            const rExt = pitchRadius + addendum;
+            const rInt = pitchRadius - dedendum;
+            
+            for (let i = 0; i < teeth; i++) {
+                const angle = i * angleStep;
+                const phi1 = angle - angleStep*0.25;
+                const phi2 = angle - angleStep*0.1;
+                const phi3 = angle + angleStep*0.1;
+                const phi4 = angle + angleStep*0.25;
+
+                const p1 = `${rInt * Math.cos(phi1)},${rInt * Math.sin(phi1)}`;
+                const p2 = `${rExt * Math.cos(phi2)},${rExt * Math.sin(phi2)}`;
+                const p3 = `${rExt * Math.cos(phi3)},${rExt * Math.sin(phi3)}`;
+                const p4 = `${rInt * Math.cos(phi4)},${rInt * Math.sin(phi4)}`;
+
+                if (i === 0) path += `M ${p1} `;
+                else path += `L ${p1} `;
+                path += `L ${p2} L ${p3} L ${p4} `;
+            }
+            path += `Z M 40,0 A 40,40 0 1,0 -40,0 A 40,40 0 1,0 40,0 Z`;
+            return path;
+        }
+
+        document.getElementById('gear-a-path').setAttribute('d', createGearPath(Z_A, R_A));
+        document.getElementById('gear-b-path').setAttribute('transform', `rotate(${360/Z_B/2})`);
+        document.getElementById('gear-b-path').setAttribute('d', createGearPath(Z_B, R_B));
+
+        const container = document.getElementById('canvas-container');
+        const groupA = document.getElementById('gear-a-group');
+        const groupB = document.getElementById('gear-b-group');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        let isDragging = false;
+        let activeGear = null;
+        let startAngle = 0;
+        let currentRotationA = 0; 
+        let currentRotationB = 0; 
+
+        function getMouseAngle(evt, cx, cy) {
+            const rect = container.getBoundingClientRect();
+            return Math.atan2(evt.clientY - rect.top - cy, evt.clientX - rect.left - cx) * (180 / Math.PI);
+        }
+
+        function updateGears(deltaDegrees, drivenBy) {
+            if (drivenBy === 'A') {
+                currentRotationA += deltaDegrees;
+                currentRotationB -= deltaDegrees * (Z_A / Z_B);
+            } else if (drivenBy === 'B') {
+                currentRotationB += deltaDegrees;
+                currentRotationA -= deltaDegrees * (Z_B / Z_A);
+            }
+
+            groupA.setAttribute('transform', `translate(${centerX_A}, ${centerY_A}) rotate(${currentRotationA})`);
+            groupB.setAttribute('transform', `translate(${centerX_B}, ${centerY_B}) rotate(${currentRotationB})`);
+
+            const exactToursA = Math.abs(currentRotationA / 360);
+            const exactToursB = Math.abs(currentRotationB / 360);
+            const dentsTotal = Math.round(exactToursA * Z_A);
+
+            document.getElementById('tours-a').innerText = exactToursA.toFixed(2);
+            document.getElementById('tours-b').innerText = exactToursB.toFixed(2);
+            document.getElementById('dents-total').innerText = dentsTotal;
+
+            if (dentsTotal > 0 && dentsTotal % 72 === 0 && (exactToursA % 1 < 0.02 || exactToursA % 1 > 0.98)) {
+                document.getElementById('lcm-alert').style.opacity = 1;
+                document.getElementById('tours-a').innerText = Math.round(exactToursA).toFixed(2);
+                document.getElementById('tours-b').innerText = Math.round(exactToursB).toFixed(2);
+            } else {
+                document.getElementById('lcm-alert').style.opacity = 0;
+            }
+        }
+
+        // --- EVENTS SOURIS & TACTILE ---
+        container.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            if (mouseX < (centerX_A + centerX_B) / 2) {
+                activeGear = 'A';
+                startAngle = getMouseAngle(e, centerX_A, centerY_A);
+            } else {
+                activeGear = 'B';
+                startAngle = getMouseAngle(e, centerX_B, centerY_B);
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const currentAngle = (activeGear === 'A') ? getMouseAngle(e, centerX_A, centerY_A) : getMouseAngle(e, centerX_B, centerY_B);
+            let delta = currentAngle - startAngle;
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+            updateGears(delta, activeGear);
+            startAngle = currentAngle;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        
+        container.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            container.dispatchEvent(new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY }));
+            e.preventDefault();
+        }, { passive: false });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            window.dispatchEvent(new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY }));
+        }, { passive: false });
+        
+        window.addEventListener('touchend', () => { window.dispatchEvent(new MouseEvent("mouseup")); });
+
+        // --- BOUTON REMISE À ZÉRO ---
+        resetBtn.addEventListener('click', () => {
+            currentRotationA = 0;
+            currentRotationB = 0;
+            updateGears(0, null); // Force la mise à jour de l'affichage avec delta = 0
+            
+            // S'assurer que le compteur affiche bien 0.00 et désactive l'alerte
+            document.getElementById('tours-a').innerText = "0.00";
+            document.getElementById('tours-b').innerText = "0.00";
+            document.getElementById('dents-total').innerText = "0";
+            document.getElementById('lcm-alert').style.opacity = 0;
+        });
+
+    </script>
+</body>
+</html>
