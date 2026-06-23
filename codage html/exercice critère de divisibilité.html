@@ -1,0 +1,203 @@
+-<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .conteneur {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            /* Bordure harmonisée avec le bandeau */
+            border: 6px solid #d86700;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e74c3c;
+            margin-bottom: 5px;
+        }
+
+        .sousTitre {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: #d86700;
+            color: white;
+            padding: 12px;
+            font-size: 18px;
+        }
+
+        td {
+            text-align: center;
+            padding: 15px;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        input[type="checkbox"] {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+
+        .resultat {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .boutonZone {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background: #d86700;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #b55600;
+        }
+
+        #messageFinal {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="conteneur">
+    <h1>🎯 Mission : Critères de divisibilité</h1>
+    <div class="sousTitre">Coche les bonnes réponses puis clique sur le bouton pour vérifier.</div>
+
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Div. par 2</th>
+            <th>Div. par 3</th>
+            <th>Div. par 5</th>
+            <th>Div. par 9</th>
+            <th>Résultat</th>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td><input id="18_2" type="checkbox"></td>
+            <td><input id="18_3" type="checkbox"></td>
+            <td><input id="18_5" type="checkbox"></td>
+            <td><input id="18_9" type="checkbox"></td>
+            <td id="r18" class="resultat"></td>
+        </tr>
+        <tr>
+            <td>45</td>
+            <td><input id="45_2" type="checkbox"></td>
+            <td><input id="45_3" type="checkbox"></td>
+            <td><input id="45_5" type="checkbox"></td>
+            <td><input id="45_9" type="checkbox"></td>
+            <td id="r45" class="resultat"></td>
+        </tr>
+        <tr>
+            <td>120</td>
+            <td><input id="120_2" type="checkbox"></td>
+            <td><input id="120_3" type="checkbox"></td>
+            <td><input id="120_5" type="checkbox"></td>
+            <td><input id="120_9" type="checkbox"></td>
+            <td id="r120" class="resultat"></td>
+        </tr>
+        <tr>
+            <td>70</td>
+            <td><input id="70_2" type="checkbox"></td>
+            <td><input id="70_3" type="checkbox"></td>
+            <td><input id="70_5" type="checkbox"></td>
+            <td><input id="70_9" type="checkbox"></td>
+            <td id="r70" class="resultat"></td>
+        </tr>
+        <tr>
+            <td>51</td>
+            <td><input id="51_2" type="checkbox"></td>
+            <td><input id="51_3" type="checkbox"></td>
+            <td><input id="51_5" type="checkbox"></td>
+            <td><input id="51_9" type="checkbox"></td>
+            <td id="r51" class="resultat"></td>
+        </tr>
+    </table>
+
+    <div class="boutonZone">
+        <button id="verifierBtn">Vérifier mes réponses</button>
+    </div>
+
+    <div id="messageFinal"></div>
+</div>
+
+<script>
+    function verifierLigne(nombre, rep2, rep3, rep5, rep9) {
+        let ok = (
+            document.getElementById(nombre+"_2").checked === rep2 &&
+            document.getElementById(nombre+"_3").checked === rep3 &&
+            document.getElementById(nombre+"_5").checked === rep5 &&
+            document.getElementById(nombre+"_9").checked === rep9
+        );
+
+        let cellule = document.getElementById("r"+nombre);
+        if(ok) {
+            cellule.innerHTML = "✔";
+            cellule.style.color = "green";
+        } else {
+            cellule.innerHTML = "✘";
+            cellule.style.color = "red";
+        }
+        return ok;
+    }
+
+    document.getElementById("verifierBtn").addEventListener("click", function() {
+        let toutBon = true;
+        // Vérification ligne par ligne
+        if(!verifierLigne("18", true, true, false, true)) toutBon = false;
+        if(!verifierLigne("45", false, true, true, true)) toutBon = false;
+        if(!verifierLigne("120", true, true, true, false)) toutBon = false;
+        if(!verifierLigne("70", true, false, true, false)) toutBon = false;
+        if(!verifierLigne("51", false, true, false, false)) toutBon = false;
+
+        let message = document.getElementById("messageFinal");
+        if(toutBon) {
+            message.innerHTML = "🎉 Félicitations ! Tout est correct.";
+            message.style.color = "green";
+        } else {
+            message.innerHTML = "⚠ Certaines erreurs persistent, réessaie !";
+            message.style.color = "#d86700";
+        }
+    });
+</script>
+
+</body>
+</html>
