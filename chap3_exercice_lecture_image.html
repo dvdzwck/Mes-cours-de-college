@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Graphique (Brevet) - Compact</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 10px; /* Moins de padding pour compacter */
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px; /* Compacter le contenu de la carte */
+            width: 100%;
+            max-width: 500px; /* Légèrement réduit pour Genially */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px; /* Moins d'espace */
+        }
+        h2 {
+            color: #4765ff;
+            margin: 0 0 5px 0;
+            font-size: 20px; /* Légèrement réduit */
+        }
+        .subtitle {
+            color: #666;
+            font-size: 13px; /* Légèrement réduit */
+            font-weight: bold;
+        }
+        .instruction {
+            background: #f8f9fa;
+            border-left: 4px solid #4765ff;
+            padding: 8px 12px; /* Compacter l'instruction */
+            margin-bottom: 10px; /* Moins d'espace */
+            font-size: 13px; /* Légèrement réduit */
+            color: #444;
+            border-radius: 0 4px 4px 0;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px; /* Moins d'espace */
+        }
+        canvas {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .questions {
+            margin-bottom: 10px; /* Moins d'espace */
+            font-size: 14px; /* Légèrement réduit */
+            color: #333;
+        }
+        .questions p {
+            margin: 5px 0; /* Moins d'espace entre questions */
+        }
+        
+        /* Style des champs de saisie */
+        input[type="number"] {
+            width: 45px; /* Compacter */
+            padding: 4px; /* Compacter */
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            font-size: 14px; /* Légèrement réduit */
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            border-color: #4765ff;
+            box-shadow: 0 0 5px rgba(71, 101, 255, 0.3);
+        }
+
+        /* Masquer les flèches (spinners) des input number */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Pour Firefox */
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px; /* Moins d'espace */
+        }
+        button {
+            background-color: #4765ff;
+            color: white;
+            border: none;
+            padding: 10px 25px; /* Compacter */
+            font-size: 15px; /* Légèrement réduit */
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #3550df;
+        }
+        #feedback {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 18px; /* Compacter */
+            font-size: 14px;
+        }
+        .error { color: #e74c3c; }
+        .success { color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>Lecture Graphique d'Images et d'Antécédents</h2>
+        <div class="subtitle" id="step-counter">Exercice 1 sur 3</div>
+    </div>
+
+    <div class="instruction">
+        Observe la courbe. Complète les phrases avec tes lectures graphiques. L'aide n'affichera que des pointillés rouges sans écrire le résultat numérique.
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="graphCanvas" width="360" height="280"></canvas>
+    </div>
+
+    <div class="questions" id="question-container">
+        </div>
+
+    <div class="btn-container">
+        <button id="validate-btn" onclick="checkAnswers()">Valider</button>
+    </div>
+
+    <div id="feedback"></div>
+</div>
+
+<script>
+    // --- Configuration des 3 exercices ---
+    const steps = [
+        {
+            func: (x) => 2 * x + 1,
+            html: `
+                <p><strong>1)</strong> L'image de 1 est <input type="number" id="s0_v1">.</p>
+                <p><strong>2)</strong> L'antécédent de -3 est <input type="number" id="s0_v2">.</p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s0_v1').value);
+                let v2 = parseFloat(document.getElementById('s0_v2').value);
+                return v1 === 3 && v2 === -2;
+            },
+            helpLines: [
+                [[1, 0], [1, 3], [0, 3]],
+                [[0, -3], [-2, -3], [-2, 0]]
+            ]
+        },
+        {
+            func: (x) => x * x - 4,
+            html: `
+                <p><strong>1)</strong> L'image de 2 est <input type="number" id="s1_v1">.</p>
+                <p><strong>2)</strong> Les deux antécédents de -3 sont <input type="number" id="s1_v2"> et <input type="number" id="s1_v3">.</p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s1_v1').value);
+                let v2 = parseFloat(document.getElementById('s1_v2').value);
+                let v3 = parseFloat(document.getElementById('s1_v3').value);
+                let ants = [v2, v3].sort((a, b) => a - b);
+                return v1 === 0 && ants[0] === -1 && ants[1] === 1;
+            },
+            helpLines: [
+                [[2, 0], [2, 0.2], [2, -0.2]],
+                [[0, -3], [-1, -3], [-1, 0]],
+                [[0, -3], [1, -3], [1, 0]]
+            ]
+        },
+        {
+            func: (x) => 0.5 * Math.pow(x, 3) - 2 * x + 2,
+            html: `
+                <p><strong>1)</strong> Les trois antécédents de 2 sont : <input type="number" id="s2_v1">, <input type="number" id="s2_v2"> et <input type="number" id="s2_v3">.</p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s2_v1').value);
+                let v2 = parseFloat(document.getElementById('s2_v2').value);
+                let v3 = parseFloat(document.getElementById('s2_v3').value);
+                let ants = [v1, v2, v3].sort((a, b) => a - b);
+                return ants[0] === -2 && ants[1] === 0 && ants[2] === 2;
+            },
+            helpLines: [
+                [[0, 2], [-2, 2], [-2, 0]],
+                [[0, 0], [0, 2]],
+                [[0, 2], [2, 2], [2, 0]]
+            ]
+        }
+    ];
+
+    let currentStep = 0;
+    let showingHelp = false;
+
+    // --- Moteur Graphique (Canvas) ---
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const scale = 36; // Réduit : 1 unité = 36 pixels (au lieu de 40) pour le nouveau canvas
+    const xMin = -5, xMax = 5;
+    const yMin = -3.5, yMax = 4;
+
+    function pixelX(x) { return width / 2 + x * scale; }
+    function pixelY(y) { return height / 2 - y * scale; }
+
+    function drawGraph() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Quadrillage
+        ctx.beginPath();
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        for (let i = xMin; i <= xMax; i++) {
+            ctx.moveTo(pixelX(i), 0); ctx.lineTo(pixelX(i), height);
+        }
+        for (let i = -5; i <= 5; i++) {
+            ctx.moveTo(0, pixelY(i)); ctx.lineTo(width, pixelY(i));
+        }
+        ctx.stroke();
+
+        // 2. Axes
+        ctx.beginPath();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5;
+        // Axe Y
+        ctx.moveTo(pixelX(0), 0); ctx.lineTo(pixelX(0), height);
+        // Axe X
+        ctx.moveTo(0, pixelY(0)); ctx.lineTo(width, pixelY(0));
+        ctx.stroke();
+
+        // Graduations et nombres
+        ctx.fillStyle = '#000';
+        ctx.font = '11px Arial'; // Réduit pour le petit canvas
+        for (let i = xMin; i <= xMax; i++) {
+            if (i !== 0) ctx.fillText(i, pixelX(i) - 4, pixelY(0) + 13);
+        }
+        for (let i = -4; i <= 4; i++) {
+            if (i !== 0) ctx.fillText(i, pixelX(0) - 14, pixelY(i) + 4);
+        }
+        ctx.fillText("0", pixelX(0) - 11, pixelY(0) + 12);
+
+        // 3. Courbe de la fonction
+        const f = steps[currentStep].func;
+        ctx.beginPath();
+        ctx.strokeStyle = '#2980b9'; 
+        ctx.lineWidth = 2.5;
+        let isFirstPoint = true;
+        for (let px = 0; px <= width; px++) {
+            let x = (px - width / 2) / scale;
+            let y = f(x);
+            let py = pixelY(y);
+            if (isFirstPoint) {
+                ctx.moveTo(px, py);
+                isFirstPoint = false;
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+        ctx.stroke();
+
+        // 4. Pointillés d'aide si erreur
+        if (showingHelp) {
+            drawHelpLines(steps[currentStep].helpLines);
+        }
+    }
+
+    function drawHelpLines(lines) {
+        ctx.setLineDash([5, 3]); // Pointillés légèrement plus denses
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#e74c3c"; 
+        
+        lines.forEach(line => {
+            ctx.beginPath();
+            ctx.moveTo(pixelX(line[0][0]), pixelY(line[0][1]));
+            for (let i = 1; i < line.length; i++) {
+                ctx.lineTo(pixelX(line[i][0]), pixelY(line[i][1]));
+            }
+            ctx.stroke();
+
+            // Point d'arrivée
+            let lastPoint = line[line.length - 1];
+            ctx.beginPath();
+            ctx.arc(pixelX(lastPoint[0]), pixelY(lastPoint[1]), 3.5, 0, 2 * Math.PI); // Légèrement réduit
+            ctx.fillStyle = "#e74c3c";
+            ctx.fill();
+        });
+        ctx.setLineDash([]); // Réinitialisation
+    }
+
+    // --- Logique de l'interface ---
+    function loadStep() {
+        showingHelp = false;
+        document.getElementById('step-counter').innerText = `Exercice ${currentStep + 1} sur ${steps.length}`;
+        document.getElementById('question-container').innerHTML = steps[currentStep].html;
+        document.getElementById('feedback').innerHTML = "";
+        
+        if (currentStep === steps.length - 1) {
+            document.getElementById('validate-btn').innerText = "Terminer";
+        } else {
+            document.getElementById('validate-btn').innerText = "Valider";
+        }
+        drawGraph();
+    }
+
+    function checkAnswers() {
+        const feedback = document.getElementById('feedback');
+        
+        if (steps[currentStep].check()) {
+            // Bonne réponse
+            feedback.innerHTML = '<span class="success">Bravo ! C\'est exact.</span>';
+            showingHelp = false;
+            drawGraph(); 
+            
+            setTimeout(() => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    loadStep();
+                } else {
+                    document.getElementById('question-container').innerHTML = "<p style='text-align:center; font-size:16px; color:#2ecc71; font-weight:bold;'>Activité terminée ! Excellent travail.</p>";
+                    document.getElementById('validate-btn').style.display = 'none';
+                    document.getElementById('step-counter').innerText = "Terminé";
+                    feedback.innerHTML = "";
+                }
+            }, 1200); 
+        } else {
+            // Mauvaise réponse : on affiche l'aide visuelle pure
+            feedback.innerHTML = '<span class="error">Il y a une erreur. Regarde les pointillés rouges pour t\'aider !</span>';
+            showingHelp = true;
+            drawGraph();
+        }
+    }
+
+    // Lancement fiable pour Genially
+    if (ctx && width && height) {
+        document.addEventListener('DOMContentLoaded', loadStep);
+    } else {
+        // Fallback si le canvas n'est pas encore prêt
+        loadStep();
+    }
+</script>
+
+</body>
+</html>
