@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul d'Images et d'Antécédents</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #4765ff;
+            margin: 0 0 5px 0;
+            font-size: 20px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .instruction {
+            background: #f8f9fa;
+            border-left: 4px solid #4765ff;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #444;
+            border-radius: 0 4px 4px 0;
+        }
+        .function-display {
+            text-align: center;
+            font-size: 24px;
+            color: #2980b9;
+            margin: 15px 0;
+            font-family: 'Times New Roman', serif;
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            font-style: italic;
+        }
+        .questions {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+        .questions p {
+            margin: 12px 0;
+            line-height: 1.8;
+        }
+        
+        input[type="number"] {
+            width: 50px;
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            border-color: #4765ff;
+            box-shadow: 0 0 5px rgba(71, 101, 255, 0.3);
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #4765ff;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #3550df;
+        }
+        #feedback {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 36px;
+            font-size: 13px;
+            padding: 0 10px;
+        }
+        .error { color: #e74c3c; }
+        .success { color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>Calcul d'Images et d'Antécédents</h2>
+        <div class="subtitle" id="step-counter">Exercice 1 sur 3</div>
+    </div>
+
+    <div class="instruction">
+        Observe l'expression algébrique de la fonction. Effectue les calculs au brouillon et complète les champs. En cas d'erreur, une aide s'affichera.
+    </div>
+
+    <div id="function-container" class="function-display">
+    </div>
+
+    <div class="questions" id="question-container">
+    </div>
+
+    <div class="btn-container">
+        <button id="validate-btn" onclick="checkAnswers()">Valider</button>
+    </div>
+
+    <div id="feedback"></div>
+</div>
+
+<script>
+    const steps = [
+        {
+            funcDisplay: "f(x) = 2x - 5",
+            html: `
+                <p><strong>1)</strong> Calculer l'image de 3 : <br>
+                f(3) = <input type="number" id="s0_v1"></p>
+                <p><strong>2)</strong> Calculer l'antécédent de 7 : <br>
+                x = <input type="number" id="s0_v2"></p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s0_v1').value);
+                let v2 = parseFloat(document.getElementById('s0_v2').value);
+                return v1 === 1 && v2 === 6;
+            },
+            helpText: "Aide : Pour l'image, remplace x par 3 dans l'expression (2 × 3 - 5). Pour l'antécédent, résous l'équation 2x - 5 = 7."
+        },
+        {
+            funcDisplay: "g(x) = x² - 4",
+            html: `
+                <p><strong>1)</strong> Calculer l'image de -3 : <br>
+                g(-3) = <input type="number" id="s1_v1"></p>
+                <p><strong>2)</strong> Quels sont les deux antécédents de 5 ? <br>
+                x₁ = <input type="number" id="s1_v2"> et x₂ = <input type="number" id="s1_v3"></p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s1_v1').value);
+                let v2 = parseFloat(document.getElementById('s1_v2').value);
+                let v3 = parseFloat(document.getElementById('s1_v3').value);
+                if(isNaN(v2) || isNaN(v3)) return false;
+                let ants = [v2, v3].sort((a, b) => a - b);
+                return v1 === 5 && ants[0] === -3 && ants[1] === 3;
+            },
+            helpText: "Aide : N'oublie pas que (-3)² = 9. Pour les antécédents, tu cherches x tel que x² - 4 = 5, donc x² = 9. Quels sont les deux nombres dont le carré est 9 ?"
+        },
+        {
+            funcDisplay: "h(x) = -3x + 7",
+            html: `
+                <p><strong>1)</strong> Calculer l'image de 2 : <br>
+                h(2) = <input type="number" id="s2_v1"></p>
+                <p><strong>2)</strong> Calculer l'antécédent de -5 : <br>
+                x = <input type="number" id="s2_v2"></p>
+            `,
+            check: () => {
+                let v1 = parseFloat(document.getElementById('s2_v1').value);
+                let v2 = parseFloat(document.getElementById('s2_v2').value);
+                return v1 === 1 && v2 === 4;
+            },
+            helpText: "Aide : Attention aux signes ! Pour l'image, calcule -3 × 2 + 7. Pour l'antécédent, résous l'équation -3x + 7 = -5."
+        }
+    ];
+
+    let currentStep = 0;
+
+    function loadStep() {
+        document.getElementById('step-counter').innerText = "Exercice " + (currentStep + 1) + " sur " + steps.length;
+        document.getElementById('function-container').innerHTML = steps[currentStep].funcDisplay;
+        document.getElementById('question-container').innerHTML = steps[currentStep].html;
+        document.getElementById('feedback').innerHTML = "";
+        
+        if (currentStep === steps.length - 1) {
+            document.getElementById('validate-btn').innerText = "Terminer";
+        } else {
+            document.getElementById('validate-btn').innerText = "Valider";
+        }
+    }
+
+    function checkAnswers() {
+        const feedback = document.getElementById('feedback');
+        
+        // Vérifie si tous les champs sont remplis
+        const inputs = document.getElementById('question-container').querySelectorAll('input[type="number"]');
+        let allFilled = true;
+        inputs.forEach(input => {
+            if (input.value === "") allFilled = false;
+        });
+
+        if (!allFilled) {
+            feedback.innerHTML = '<span class="error">Veuillez remplir tous les champs avant de valider.</span>';
+            return;
+        }
+        
+        if (steps[currentStep].check()) {
+            feedback.innerHTML = '<span class="success">Bravo ! Tes calculs sont exacts.</span>';
+            
+            setTimeout(() => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    loadStep();
+                } else {
+                    document.getElementById('function-container').style.display = 'none';
+                    document.getElementById('question-container').innerHTML = "<p style='text-align:center; font-size:16px; color:#2ecc71; font-weight:bold; margin-top:20px;'>Activité terminée ! Excellent travail.</p>";
+                    document.getElementById('validate-btn').style.display = 'none';
+                    document.getElementById('step-counter').innerText = "Terminé";
+                    feedback.innerHTML = "";
+                }
+            }, 1500); 
+        } else {
+            feedback.innerHTML = '<span class="error">' + steps[currentStep].helpText + '</span>';
+        }
+    }
+
+    // Initialisation directe (sans attendre DOMContentLoaded)
+    loadStep();
+</script>
+
+</body>
+</html>
