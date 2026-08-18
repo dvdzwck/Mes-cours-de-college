@@ -112,7 +112,7 @@
             displayDiv.innerText = currentSelection.map(n => n.toLocaleString('fr-FR')).join(' > ');
         }
 
-        function checkSequence() {
+  function checkSequence() {
             const messageBox = document.getElementById('messageBox');
             let isCorrect = true;
             
@@ -124,19 +124,18 @@
             }
 
             if (isCorrect) {
-                messageBox.innerHTML = "CIBLES DÉTRUITES !<br>VOIE DÉGAGÉE !";
+                // ---> C'EST ICI QU'ON AJOUTE LE MOT DE PASSE <---
+                messageBox.innerHTML = "CIBLES DÉTRUITES !<br>Code de saut stellaire : LUMIERE";
                 messageBox.className = "message success";
             } else {
                 messageBox.innerHTML = "ERREUR DE SÉQUENCE !<br>Réinitialisation du système...";
                 messageBox.className = "message error";
                 
-                // On réinitialise après 2 secondes
                 setTimeout(() => {
                     currentSelection = [];
                     updateDisplay();
                     messageBox.innerHTML = "En attente de verrouillage...";
                     messageBox.className = "message";
-                    // Réactiver tous les boutons
                     let btns = document.getElementsByClassName('asteroid-btn');
                     for(let btn of btns) { btn.disabled = false; }
                 }, 2000);
