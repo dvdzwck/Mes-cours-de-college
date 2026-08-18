@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digicode Astro-6</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .terminal {
+            background: #161b22;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+        .screen {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            font-size: 24px;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            min-height: 30px;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        button {
+            background: #21262d;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            font-size: 20px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .btn-clear { color: #ff3333; border-color: #ff3333; }
+        .btn-clear:hover { background: #ff3333; color: #000; }
+        .btn-enter { color: #33ccff; border-color: #33ccff; }
+        .btn-enter:hover { background: #33ccff; color: #000; }
+        
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        .success { color: #33ccff; font-weight: bold; text-shadow: 0 0 5px #33ccff;}
+        .error { color: #ff3333; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal">
+        <div>RÉACTEUR CENTRAL // M.A.T.H.I.S</div>
+        <div style="font-size: 12px; margin-bottom: 15px; color: #888;">Saisir la séquence d'énergie</div>
+        
+        <div class="screen" id="display"></div>
+        
+        <div class="keypad">
+            <button onclick="addNumber('7')">7</button>
+            <button onclick="addNumber('8')">8</button>
+            <button onclick="addNumber('9')">9</button>
+            <button onclick="addNumber('4')">4</button>
+            <button onclick="addNumber('5')">5</button>
+            <button onclick="addNumber('6')">6</button>
+            <button onclick="addNumber('1')">1</button>
+            <button onclick="addNumber('2')">2</button>
+            <button onclick="addNumber('3')">3</button>
+            <button class="btn-clear" onclick="clearDisplay()">C</button>
+            <button onclick="addNumber('0')">0</button>
+            <button class="btn-enter" onclick="checkCode()">OK</button>
+        </div>
+        
+        <div class="message" id="messageBox">En attente de saisie...</div>
+    </div>
+
+    <script>
+        const correctCode = "503084";
+        let currentInput = "";
+        const display = document.getElementById("display");
+        const messageBox = document.getElementById("messageBox");
+
+        function addNumber(num) {
+            if (currentInput.length < 8) {
+                currentInput += num;
+                updateDisplay();
+            }
+        }
+
+        function clearDisplay() {
+            currentInput = "";
+            updateDisplay();
+            messageBox.innerHTML = "En attente de saisie...";
+            messageBox.className = "message";
+        }
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function checkCode() {
+            if (currentInput === correctCode) {
+                messageBox.innerHTML = "ÉNERGIE RESTAURÉE<br>Mot de passe de validation : ORION";
+                messageBox.className = "message success";
+                // On empêche de taper d'autres chiffres une fois réussi
+                currentInput = correctCode; 
+            } else {
+                messageBox.innerHTML = "SÉQUENCE INCORRECTE";
+                messageBox.className = "message error";
+                setTimeout(clearDisplay, 1500); // Efface l'écran après 1.5 seconde
+            }
+        }
+    </script>
+
+</body>
+</html>
