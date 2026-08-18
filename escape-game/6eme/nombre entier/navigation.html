@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Astro-6</title>
+    <style>
+        body {
+            background-color: #050a1f;
+            color: #00d2ff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .dashboard {
+            background: #0b143a;
+            padding: 30px;
+            border: 2px solid #00d2ff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+            text-align: center;
+            width: 350px;
+        }
+        h2 { margin-top: 0; font-size: 20px; letter-spacing: 2px; }
+        input[type="text"] {
+            background: #020617;
+            border: 1px solid #00d2ff;
+            color: #ffffff;
+            padding: 15px;
+            font-size: 22px;
+            width: 80%;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0, 210, 255, 0.2);
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: #ffffff; }
+        button {
+            background: #003366;
+            color: #00d2ff;
+            border: 1px solid #00d2ff;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:hover { background: #00d2ff; color: #000; }
+        .message { margin-top: 20px; font-size: 15px; min-height: 40px; }
+        .success { color: #00ff00; font-weight: bold; text-shadow: 0 0 5px #00ff00;}
+        .error { color: #ff4444; }
+        .hint { color: #ffaa00; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h2>ORDINATEUR DE CAP</h2>
+        <div style="font-size: 12px; margin-bottom: 20px; color: #888;">Format accepté : chiffres uniquement (espaces autorisés)</div>
+        
+        <input type="text" id="coordInput" placeholder="Ex: 1 000 000" autocomplete="off">
+        <br>
+        <button onclick="checkCoords()">CALCULER LA TRAJECTOIRE</button>
+        
+        <div class="message" id="messageBox">En attente des coordonnées...</div>
+    </div>
+
+    <script>
+        const correctCode = "35040600";
+        
+        function checkCoords() {
+            const inputField = document.getElementById("coordInput");
+            const messageBox = document.getElementById("messageBox");
+            
+            // On récupère la valeur et on supprime tous les espaces pour faciliter la validation
+            let rawInput = inputField.value.replace(/\s+/g, '');
+            
+            if (rawInput === correctCode) {
+                messageBox.innerHTML = "CAP VERROUILLÉ !<br>Mot de passe du sas : NOVA";
+                messageBox.className = "message success";
+                inputField.disabled = true;
+            } 
+            // Gestion des erreurs classiques (les zéros muets)
+            else if (rawInput === "3540600" || rawInput === "35400600" || rawInput === "35004600") {
+                messageBox.innerHTML = "ERREUR : Il manque des chiffres.<br>Avez-vous bien pensé aux dizaines ou centaines 'muettes' ?";
+                messageBox.className = "message hint";
+            }
+            // Autres erreurs
+            else {
+                messageBox.innerHTML = "ERREUR DE TRAJECTOIRE.<br>Vérifiez vos groupements par classes.";
+                messageBox.className = "message error";
+            }
+        }
+    </script>
+
+</body>
+</html>
