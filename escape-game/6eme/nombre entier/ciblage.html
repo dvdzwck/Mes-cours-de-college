@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciblage Astro-6</title>
+    <style>
+        body {
+            background-color: #1a0000;
+            color: #ff4444;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .dashboard {
+            background: #2a0000;
+            padding: 20px;
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+            text-align: center;
+            width: 400px;
+        }
+        h2 { margin-top: 0; color: #ff8888; letter-spacing: 2px; }
+        .asteroid-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .asteroid-btn {
+            background: #4a0a0a;
+            color: #ffaaaa;
+            border: 1px solid #ff4444;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+        .asteroid-btn:hover { background: #ff4444; color: #000; }
+        .asteroid-btn:disabled { background: #111; color: #444; border-color: #444; cursor: not-allowed; }
+        
+        .target-list {
+            background: #000;
+            border: 1px solid #ff8888;
+            padding: 10px;
+            min-height: 30px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+        .message { font-size: 16px; min-height: 40px; font-weight: bold; }
+        .success { color: #00ff00; text-shadow: 0 0 10px #00ff00; font-size: 20px; }
+        .error { color: #ff0000; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h2>SYSTÈME DE CIBLAGE</h2>
+        <div style="font-size: 12px; margin-bottom: 15px; color: #aaa;">Sélectionnez les cibles dans l'ordre décroissant</div>
+        
+        <div class="asteroid-grid" id="buttonsContainer">
+            <!-- Boutons mélangés générés en JS -->
+        </div>
+
+        <div style="font-size: 12px; color: #ff8888;">Séquence de tir (masses en tonnes) :</div>
+        <div class="target-list" id="targetDisplay"></div>
+        
+        <div class="message" id="messageBox">En attente de verrouillage...</div>
+    </div>
+
+    <script>
+        // Les masses dans le bon ordre (décroissant)
+        const correctOrder = [345768, 345678, 304567, 45678, 34567];
+        // Les masses à afficher (mélangées)
+        const displayAsteroids = [45678, 345678, 34567, 345768, 304567];
+        
+        let currentSelection = [];
+        
+        // Initialisation des boutons
+        const container = document.getElementById('buttonsContainer');
+        displayAsteroids.forEach(mass => {
+            let btn = document.createElement('button');
+            btn.className = 'asteroid-btn';
+            btn.innerText = mass.toLocaleString('fr-FR'); // Ajoute les espaces
+            btn.onclick = function() { selectAsteroid(mass, this); };
+            container.appendChild(btn);
+        });
+
+        function selectAsteroid(mass, btnElement) {
+            currentSelection.push(mass);
+            btnElement.disabled = true; // Désactive le bouton cliqué
+            
+            updateDisplay();
+
+            if (currentSelection.length === 5) {
+                checkSequence();
+            }
+        }
+
+        function updateDisplay() {
+            const displayDiv = document.getElementById('targetDisplay');
+            // Formate les nombres avec des espaces pour l'affichage
+            displayDiv.innerText = currentSelection.map(n => n.toLocaleString('fr-FR')).join(' > ');
+        }
+
+        function checkSequence() {
+            const messageBox = document.getElementById('messageBox');
+            let isCorrect = true;
+            
+            for (let i = 0; i < 5; i++) {
+                if (currentSelection[i] !== correctOrder[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                messageBox.innerHTML = "CIBLES DÉTRUITES !<br>VOIE DÉGAGÉE !";
+                messageBox.className = "message success";
+            } else {
+                messageBox.innerHTML = "ERREUR DE SÉQUENCE !<br>Réinitialisation du système...";
+                messageBox.className = "message error";
+                
+                // On réinitialise après 2 secondes
+                setTimeout(() => {
+                    currentSelection = [];
+                    updateDisplay();
+                    messageBox.innerHTML = "En attente de verrouillage...";
+                    messageBox.className = "message";
+                    // Réactiver tous les boutons
+                    let btns = document.getElementsByClassName('asteroid-btn');
+                    for(let btn of btns) { btn.disabled = false; }
+                }, 2000);
+            }
+        }
+    </script>
+
+</body>
+</html>
